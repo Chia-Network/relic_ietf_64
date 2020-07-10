@@ -78,6 +78,12 @@
 #ifndef RELIC_H
 #define RELIC_H
 
+// [!CHIA_EDIT_START]
+#ifdef __cplusplus
+extern "C" {
+#endif
+// [!CHIA_EDIT_END]
+
 #include "relic_arch.h"
 #include "relic_conf.h"
 #include "relic_core.h"
@@ -102,5 +108,11 @@
 #include "relic_err.h"
 #include "relic_rand.h"
 #include "relic_util.h"
+
+// [!CHIA_EDIT_START]
+#ifdef __cplusplus
+}
+#endif
+// [!CHIA_EDIT_END]
 
 #endif /* !RELIC_H */
