@@ -678,6 +678,7 @@
 #define OPENMP   1
 /** POSIX multithreading support. */
 #define PTHREAD  2
+#define PYTHON   3
 /** Chosen multithreading API. */
 #define MULTI    PYTHON
 
