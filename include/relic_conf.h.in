@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -122,6 +122,8 @@
 #define EASY	 1
 /** GMP backend. */
 #define GMP      2
+/** GMP constant-time backend. */
+#define GMP_SEC  3
 /** Arithmetic backend. */
 #define ARITH    @ARITH@
 
@@ -632,8 +634,6 @@
 #define AUTO     1
 /** Dynamic memory allocation. */
 #define DYNAMIC  2
-/** Stack memory allocation. */
-#define STACK    3
 /** Chosen memory allocation policy. */
 #define ALLOC    @ALLOC@
 
@@ -669,8 +669,10 @@
 #define WINDOWS  4
 /** Android operating system. */
 #define DROID    5
-/* Arduino platform. */
+/** Arduino platform. */
 #define DUINO    6
+/** OpenBSD operating system. */
+#define OPENBSD  7
 /** Detected operation system. */
 #cmakedefine OPSYS    @OPSYS@
 
@@ -678,7 +680,6 @@
 #define OPENMP   1
 /** POSIX multithreading support. */
 #define PTHREAD  2
-#define PYTHON   3
 /** Chosen multithreading API. */
 #cmakedefine MULTI    @MULTI@
 
@@ -694,6 +695,8 @@
 #define ANSI     5
 /** Cycle-counting timer. */
 #define CYCLE    6
+/** Performance monitoring framework. */
+#define PERF     7
 /** Chosen timer. */
 #cmakedefine TIMER    @TIMER@
 

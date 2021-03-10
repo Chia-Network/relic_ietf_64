@@ -13,7 +13,7 @@ set(VERSION ${PROJECT_VERSION})
 set(ARCH "X64" CACHE STRING "")
 set(ARITH "gmp" CACHE STRING "")
 set(WSIZE 64 CACHE INTEGER "")
-set(TIMER "CYCLE" CACHE STRING "")
+set(TIMER "HREAL" CACHE STRING "")
 set(CHECK "off" CACHE STRING "")
 set(VERBS "off" CACHE STRING "")
 set(ALLOC "AUTO" CACHE STRING "")
@@ -36,7 +36,6 @@ set(BENCH 0 CACHE INTEGER "")
 set(QUIET 1 CACHE INTEGER "")
 set(PP_EXT "LAZYR" CACHE STRING "")
 set(PP_METHD "LAZYR;OATEP" CACHE STRING "")
-
 
 set(INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include/low ${CMAKE_CURRENT_SOURCE_DIR}/src/tmpl)
 include_directories(${INCLUDE})
@@ -123,15 +122,14 @@ message("   ARITH=gmp-sec  Same as above, but using constant-time code.\n")
 message(STATUS "Available memory-allocation policies (default = AUTO):\n")
 
 message("   ALLOC=AUTO     All memory is automatically allocated.")
-message("   ALLOC=STATIC   All memory is allocated statically once.")
-message("   ALLOC=DYNAMIC  All memory is allocated dynamically on demand.")
-message("   ALLOC=STACK    All memory is allocated from the stack.\n")
+message("   ALLOC=DYNAMIC  All memory is allocated dynamically on demand.\n")
 
 message(STATUS "Supported operating systems (default = LINUX):\n")
 
 message("   OPSYS=         Undefined/No specific operating system.")
 message("   OPSYS=LINUX    GNU/Linux operating system.")
 message("   OPSYS=FREEBSD  FreeBSD operating system.")
+message("   OPSYS=NETBSD   NetBSD operating system.")
 message("   OPSYS=MACOSX   Mac OS X operating system.")
 message("   OPSYS=WINDOWS  Windows operating system.")
 message("   OPSYS=DROID    Android operating system.")
@@ -151,7 +149,8 @@ message("   TIMER=HPROC    GNU/Linux per-process high-resolution timer.")
 message("   TIMER=HTHRD    GNU/Linux per-thread high-resolution timer.")
 message("   TIMER=ANSI     ANSI-compatible timer.")
 message("   TIMER=POSIX    POSIX-compatible timer.")
-message("   TIMER=CYCLE    Cycle-counting timer. (architecture-dependant)\n")
+message("   TIMER=CYCLE    Cycle-counting timer. (architecture-dependant)")
+message("   TIMER=PERF     GNU/Linux performance monitoring framework.\n")
 
 message(STATUS "Prefix to identify this build of the library (default = \"\"):\n")
 
@@ -186,13 +185,6 @@ set(ARITH "easy" CACHE STRING "Arithmetic backend")
 # Choose the memory-allocation policy.
 set(ALLOC "AUTO" CACHE STRING "Allocation policy")
 
-# Compiler flags.
-if("$ENV{COMP}" STREQUAL "")
-	set(COMP "-O2 -funroll-loops -fomit-frame-pointer" CACHE STRING "User-chosen compiler flags.")
-else()
-	set(COMP "$ENV{COMP}" CACHE STRING "User-chosen compiler flags.")
-endif()
-
 # Simulator of the target platform.
 set(SIMUL "$ENV{SIMUL}" CACHE STRING "Path to call a simulator of the target platform.")
 set(SIMAR "$ENV{SIMAR}" CACHE STRING "Arguments to call a simulator of the target platform.")
@@ -201,8 +193,7 @@ string(REPLACE " " ";" SIMAR "${SIMAR}")
 # Linker flags.
 string(TOLOWER ${ARITH} LFLAGS)
 set(LFLAGS "-L${CMAKE_CURRENT_SOURCE_DIR}/src/low/${LFLAGS}/")
-set(LINK "$ENV{LINK}" CACHE STRING "User-chosen linker flags.")
-set(LFLAGS "${LFLAGS} ${LINK}")
+set(LFLAGS "${LFLAGS} $ENV{LDFLAGS}")
 
 if(STBIN)
 	set(LFLAGS "${LFLAGS} -static")
@@ -219,6 +210,10 @@ else()
 	else()
 		if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 			set(OPSYS "MACOSX" CACHE STRING "Operating system")
+			else()
+			  if(CMAKE_SYSTEM_NAME STREQUAL NetBSD)
+				set(OPSYS "NETBSD" CACHE STRING "Operating system")
+			endif()
 		endif()
 	endif()
 endif()
@@ -260,9 +255,12 @@ if(DEBUG)
 	set(CFLAGS "-O0 -fno-omit-frame-pointer")
 	set(DFLAGS "-ggdb")
 else()
-	# If the user did not specify compile flags, we use sane defaults.
-	set(CFLAGS "${COMP}")
-	set(DFLAGS "")
+	if("$ENV{CFLAGS}" STREQUAL "")
+		# If the user did not specify compile flags, we use sane defaults.
+		set(CFLAGS "-O2 -funroll-loops -fomit-frame-pointer" CACHE STRING "User-chosen compiler flags.")
+	else()
+		set(CFLAGS "$ENV{CFLAGS}" CACHE STRING "User-chosen compiler flags.")
+	endif()
 endif()
 
 if(AUSAN)
@@ -304,10 +302,10 @@ if(ARITH STREQUAL "fiat")
 endif()
 
 set(CMAKE_C_FLAGS "-pipe -std=c99 ${AFLAGS} ${WFLAGS} ${DFLAGS} ${PFLAGS} ${CFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS ${LFLAGS})
+set(CMAKE_EXE_LINKER_FLAGS "${LFLAGS}")
 
 message(STATUS "Compiler flags: ${CMAKE_C_FLAGS}")
-message(STATUS "Linker flags: ${LFLAGS}")
+message(STATUS "Linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
 
 string(TOUPPER ${ARITH} ARITH)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/relic_conf.h.in

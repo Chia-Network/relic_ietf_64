@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -118,11 +118,6 @@ typedef dig_t *dv_t;
 #define dv_new(A)			dv_new_dynam(&(A), RLC_DV_DIGS)
 #elif ALLOC == AUTO
 #define dv_new(A)			/* empty */
-#elif ALLOC == STACK
-#define dv_new(A)															\
-	A = (dig_t *)alloca(RLC_DV_BYTES + RLC_PAD(RLC_DV_BYTES));				\
-	A = (dig_t *)RLC_ALIGN(A);												\
-
 #endif
 
 /**
@@ -133,8 +128,6 @@ typedef dig_t *dv_t;
 #if ALLOC == DYNAMIC
 #define dv_free(A)			dv_free_dynam(&(A))
 #elif ALLOC == AUTO
-#define dv_free(A)			(void)A
-#elif ALLOC == STACK
 #define dv_free(A)			(void)A
 #endif
 
@@ -228,5 +221,27 @@ void dv_new_dynam(dv_t *a, int digits);
 #if ALLOC == DYNAMIC
 void dv_free_dynam(dv_t *a);
 #endif
+
+/**
+ * Shifts a digit vector to the left by some digits.
+ * Computes c = a << (digits * RLC_DIG).
+ *
+ * @param[out] c			- the result.
+ * @param[in] a				- the digit vector to shift.
+ * @param[in] size			- the number of digits to shift.
+ * @param[in] digits		- the shift amount.
+ */
+void dv_lshd(dig_t *c, const dig_t *a, int size, int digits);
+
+/**
+ * Shifts a digit vector to the right by some digits.
+ * Computes c = a >> (digits * RLC_DIG).
+ *
+ * @param[out] c			- the result.
+ * @param[in] a				- the digit vector to shift.
+ * @param[in] size			- the number of digits to shift.
+ * @param[in] digits		- the shift amount.
+ */
+void dv_rshd(dig_t *c, const dig_t *a, int size, int digits);
 
 #endif /* !RLC_DV_H */

@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -78,12 +78,6 @@
 #ifndef RELIC_H
 #define RELIC_H
 
-// [!CHIA_EDIT_START]
-#ifdef __cplusplus
-extern "C" {
-#endif
-// [!CHIA_EDIT_END]
-
 #include "relic_arch.h"
 #include "relic_conf.h"
 #include "relic_core.h"
@@ -108,11 +102,5 @@ extern "C" {
 #include "relic_err.h"
 #include "relic_rand.h"
 #include "relic_util.h"
-
-// [!CHIA_EDIT_START]
-#ifdef __cplusplus
-}
-#endif
-// [!CHIA_EDIT_END]
 
 #endif /* !RELIC_H */

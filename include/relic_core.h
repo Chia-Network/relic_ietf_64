@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -331,14 +331,6 @@ typedef struct _ctx_t {
 	/** Array of pointers to the precomputation table. */
 	ep2_st *ep2_ptr[RLC_EP_TABLE];
 #endif /* EP_PRECO */
-#if ALLOC == STACK
-	/** In case of stack allocation, we need to get global memory for the table. */
-	fp2_st _ep2_pre[3 * RLC_EP_TABLE];
-	/** In case of stack allocation, storage for the EPX constants. */
-	ep2_st _ep2_g;
-	/* 3 for ep2_g, plus ep2_a, ep2_b, ep2_map_u, and ep2_map_c[4] */
-	fp2_st _ep2_storage[10];
-#endif /* ALLOC == STACK */
 #ifdef EP_CTMAP
 	/** The isogeny map coefficients for the SSWU mapping. */
 	iso2_st ep2_iso;
@@ -371,7 +363,7 @@ typedef struct _ctx_t {
 
 #if defined(WITH_FPX) || defined(WITH_PP)
 	/** Integer part of the quadratic non-residue. */
-	int qnr2;
+	dis_t qnr2;
 	/** Constants for computing Frobenius maps in higher extensions. @{ */
 	fp2_st fp2_p1[5];
 	fp2_st fp2_p2[3];
@@ -390,9 +382,9 @@ typedef struct _ctx_t {
 
 #if BENCH > 0
 	/** Stores the time measured before the execution of the benchmark. */
-	bench_t before;
+	ben_t before;
 	/** Stores the time measured after the execution of the benchmark. */
-	bench_t after;
+	ben_t after;
 	/** Stores the sum of timings for the current benchmark. */
 	long long total;
 #ifdef OVERH
@@ -412,6 +404,13 @@ typedef struct _ctx_t {
 	int seeded;
 	/** Counter to keep track of number of calls since last seeding. */
 	int counter;
+
+#if TIMER == PERF
+	/** File descriptor for perf system call. */
+	int perf_fd;
+	/** Buffer for storing perf data, */
+	struct perf_event_mmap_page *perf_buf;
+#endif
 } ctx_t;
 
 /*============================================================================*/
@@ -426,9 +425,9 @@ typedef struct _ctx_t {
 int core_init(void);
 
 /**
- * Finalizes the library.
+ * Finalizes the library with the current error condition.
  *
- * @return RLC_OK if no error occurs, RLC_ERR otherwise.
+ * @return RLC_OK if no error has occurred, RLC_ERR otherwise.
  */
 int core_clean(void);
 
@@ -446,7 +445,6 @@ ctx_t *core_get(void);
  */
 void core_set(ctx_t *ctx);
 
-// [!CHIA_EDIT_START]
 #if MULTI != RELIC_NONE
 /**
  * Set an initializer function which is called when the context
@@ -457,6 +455,5 @@ void core_set(ctx_t *ctx);
  */
 void core_set_thread_initializer(void (*init)(void *init_ptr), void *init_ptr);
 #endif
-// [!CHIA_EDIT_END]
 
 #endif /* !RLC_CORE_H */

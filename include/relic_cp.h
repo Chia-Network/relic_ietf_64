@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -208,10 +208,10 @@ typedef bgn_st *bgn_t;
  * @param[out] A			- the new key pair.
  */
 #if ALLOC == DYNAMIC
-#define crt_new(A)														\
-	A = (crt_t)calloc(1, sizeof(crt_st));								\
+#define crt_new(A)															\
+	A = (crt_t)calloc(1, sizeof(crt_st));									\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_new((A)->n);															\
 	bn_new((A)->dp);														\
@@ -222,16 +222,6 @@ typedef bgn_st *bgn_t;
 
 #elif ALLOC == AUTO
 #define crt_new(A)															\
-	bn_new((A)->n);															\
-	bn_new((A)->dp);														\
-	bn_new((A)->dq);														\
-	bn_new((A)->p);															\
-	bn_new((A)->q);															\
-	bn_new((A)->qi);														\
-
-#elif ALLOC == STACK
-#define crt_new(A)															\
-	A = (crt_t)alloca(sizeof(crt_st));										\
 	bn_new((A)->n);															\
 	bn_new((A)->dp);														\
 	bn_new((A)->dq);														\
@@ -262,16 +252,6 @@ typedef bgn_st *bgn_t;
 #elif ALLOC == AUTO
 #define crt_free(A)			/* empty */
 
-#elif ALLOC == STACK
-#define crt_free(A)															\
-	bn_free((A)->n);														\
-	bn_free((A)->dp);														\
-	bn_free((A)->dq);														\
-	bn_free((A)->p);														\
-	bn_free((A)->q);														\
-	bn_free((A)->qi);														\
-	A = NULL;																\
-
 #endif
 
 /**
@@ -294,7 +274,7 @@ typedef bgn_st *bgn_t;
 #define rsa_new(A)															\
 	A = (rsa_t)calloc(1, sizeof(_rsa_st));									\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_null((A)->d);														\
 	bn_null((A)->e);														\
@@ -306,13 +286,6 @@ typedef bgn_st *bgn_t;
 #define rsa_new(A)															\
 	bn_new((A)->d);															\
 	bn_new((A)->e);															\
-	crt_new((A)->crt);														\
-
-#elif ALLOC == STACK
-#define rsa_new(A)															\
-	A = (rsa_t)alloca(sizeof(_rsa_st));										\
-	bn_new((A)->e);															\
-	bn_new((A)->d);															\
 	crt_new((A)->crt);														\
 
 #endif
@@ -334,13 +307,6 @@ typedef bgn_st *bgn_t;
 
 #elif ALLOC == AUTO
 #define rsa_free(A)				/* empty */
-
-#elif ALLOC == STACK
-#define rsa_free(A)															\
-	bn_free((A)->d);														\
-	bn_free((A)->e);														\
-	crt_free((A)->crt);														\
-	A = NULL;																\
 
 #endif
 
@@ -413,7 +379,7 @@ typedef bgn_st *bgn_t;
 #define bdpe_new(A)															\
 	A = (bdpe_t)calloc(1, sizeof(bdpe_st));									\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_new((A)->n);															\
 	bn_new((A)->y);															\
@@ -428,14 +394,6 @@ typedef bgn_st *bgn_t;
 	bn_new((A)->p);															\
 	bn_new((A)->q);															\
 	(A)->t = 0;																\
-
-#elif ALLOC == STACK
-#define bdpe_new(A)															\
-	A = (bdpe_t)alloca(sizeof(bdpe_st));									\
-	bn_new((A)->n);															\
-	bn_new((A)->y);															\
-	bn_new((A)->p);															\
-	bn_new((A)->q);															\
 
 #endif
 
@@ -459,15 +417,6 @@ typedef bgn_st *bgn_t;
 #elif ALLOC == AUTO
 #define bdpe_free(A)			/* empty */
 
-#elif ALLOC == STACK
-#define bdpe_free(A)														\
-	bn_free((A)->n);														\
-	bn_free((A)->y);														\
-	bn_free((A)->p);														\
-	bn_free((A)->q);														\
-	(A)->t = 0;																\
-	A = NULL;																\
-
 #endif
 
 /**
@@ -490,19 +439,13 @@ typedef bgn_st *bgn_t;
 #define sokaka_new(A)														\
 	A = (sokaka_t)calloc(1, sizeof(sokaka_st));								\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	g1_new((A)->s1);														\
 	g2_new((A)->s2);														\
 
 #elif ALLOC == AUTO
 #define sokaka_new(A)			/* empty */
-
-#elif ALLOC == STACK
-#define sokaka_new(A)														\
-	A = (sokaka_t)alloca(sizeof(sokaka_st));								\
-	g1_new((A)->s1);														\
-	g2_new((A)->s2);														\
 
 #endif
 
@@ -522,12 +465,6 @@ typedef bgn_st *bgn_t;
 
 #elif ALLOC == AUTO
 #define sokaka_free(A)			/* empty */
-
-#elif ALLOC == STACK
-#define sokaka_free(A)														\
-	g1_free((A)->s1);														\
-	g2_free((A)->s2);														\
-	A = NULL;																\
 
 #endif
 
@@ -551,7 +488,7 @@ typedef bgn_st *bgn_t;
 #define bgn_new(A)															\
 	A = (bgn_t)calloc(1, sizeof(bgn_st));									\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_new((A)->x);															\
 	bn_new((A)->y);															\
@@ -565,19 +502,6 @@ typedef bgn_st *bgn_t;
 
 #elif ALLOC == AUTO
 #define bgn_new(A)				/* empty */
-
-#elif ALLOC == STACK
-#define bgn_new(A)															\
-	A = (bgn_t)alloca(sizeof(bgn_st));										\
-	bn_new((A)->x);															\
-	bn_new((A)->y);															\
-	bn_new((A)->z);															\
-	g1_new((A)->gx);														\
-	g1_new((A)->gy);														\
-	g1_new((A)->gz);														\
-	g2_new((A)->hx);														\
-	g2_new((A)->hy);														\
-	g2_new((A)->hz);														\
 
 #endif
 
@@ -604,19 +528,6 @@ typedef bgn_st *bgn_t;
 
 #elif ALLOC == AUTO
 #define bgn_free(A)				/* empty */
-
-#elif ALLOC == STACK
-#define bgn_free(A)															\
-	bn_free((A)->x);														\
-	bn_free((A)->y);														\
-	bn_free((A)->z);														\
-	g1_free((A)->gx);														\
-	g1_free((A)->gy);														\
-	g1_free((A)->gz);														\
-	g2_free((A)->hx);														\
-	g2_free((A)->hy);														\
-	g2_free((A)->hz);														\
-	A = NULL;																\
 
 #endif
 
@@ -659,7 +570,7 @@ int cp_rsa_enc(uint8_t *out, int *out_len, uint8_t *in, int in_len, rsa_t pub);
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_rsa_dec(uint8_t *out, int *out_len, uint8_t *in, int in_len,
-		rsa_t prv);
+	rsa_t prv);
 
 /**
  * Signs using the basic RSA signature algorithm. The flag must be non-zero if
@@ -675,7 +586,7 @@ int cp_rsa_dec(uint8_t *out, int *out_len, uint8_t *in, int in_len,
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_rsa_sig(uint8_t *sig, int *sig_len, uint8_t *msg, int msg_len,
-		int hash, rsa_t prv);
+	int hash, rsa_t prv);
 
 /**
  * Verifies an RSA signature. The flag must be non-zero if the message being
@@ -690,7 +601,7 @@ int cp_rsa_sig(uint8_t *sig, int *sig_len, uint8_t *msg, int msg_len,
  * @return a boolean value indicating if the signature is valid.
  */
 int cp_rsa_ver(uint8_t *sig, int sig_len, uint8_t *msg, int msg_len, int hash,
-		rsa_t pub);
+	rsa_t pub);
 
 /**
  * Generates a key pair for the Rabin cryptosystem.
@@ -713,7 +624,7 @@ int cp_rabin_gen(rabin_t pub, rabin_t prv, int bits);
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_rabin_enc(uint8_t *out, int *out_len, uint8_t *in, int in_len,
-		rabin_t pub);
+	rabin_t pub);
 
 /**
  * Decrypts using the Rabin cryptosystem.
@@ -726,7 +637,7 @@ int cp_rabin_enc(uint8_t *out, int *out_len, uint8_t *in, int in_len,
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_rabin_dec(uint8_t *out, int *out_len, uint8_t *in, int in_len,
-		rabin_t prv);
+	rabin_t prv);
 
 /**
  * Generates a key pair for Benaloh's Dense Probabilistic Encryption.
@@ -867,7 +778,7 @@ int cp_ecmqv_gen(bn_t d, ec_t q);
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_ecmqv_key(uint8_t *key, int key_len, bn_t d1, bn_t d2, ec_t q2u,
-		ec_t q1v, ec_t q2v);
+	ec_t q1v, ec_t q2v);
 
 /**
  * Generates an ECIES key pair.
@@ -891,7 +802,7 @@ int cp_ecies_gen(bn_t d, ec_t q);
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_ecies_enc(ec_t r, uint8_t *out, int *out_len, uint8_t *in, int in_len,
-		ec_t q);
+	ec_t q);
 
 /**
  * Decrypts using the ECIES cryptosystem.
@@ -905,7 +816,7 @@ int cp_ecies_enc(ec_t r, uint8_t *out, int *out_len, uint8_t *in, int in_len,
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_ecies_dec(uint8_t *out, int *out_len, ec_t r, uint8_t *in, int in_len,
-		bn_t d);
+	bn_t d);
 
 /**
  * Generates an ECDSA key pair.
@@ -990,11 +901,10 @@ int cp_sokaka_gen(bn_t master);
  *
  * @param[out] k			- the private key.
  * @param[in] id			- the identity.
- * @param[in] len			- the length of identity in bytes.
  * @param[in] master		- the master key.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_sokaka_gen_prv(sokaka_t k, char *id, int len, bn_t master);
+int cp_sokaka_gen_prv(sokaka_t k, char *id, bn_t master);
 
 /**
  * Computes a shared key between two entities.
@@ -1002,14 +912,12 @@ int cp_sokaka_gen_prv(sokaka_t k, char *id, int len, bn_t master);
  * @param[out] key			- the shared key.
  * @param[int] key_len		- the intended shared key length in bytes.
  * @param[in] id1			- the first identity.
- * @param[in] len1			- the length of the first identity in bytes.
  * @param[in] k				- the private key of the first identity.
  * @param[in] id2			- the second identity.
- * @param[in] len2			- the length of the second identity in bytes.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_sokaka_key(uint8_t *key, unsigned int key_len, char *id1, int len1,
-		sokaka_t k, char *id2, int len2);
+int cp_sokaka_key(uint8_t *key, unsigned int key_len, char *id1,
+	sokaka_t k, char *id2);
 
 /**
  * Generates a key pair for the Boneh-Go-Nissim (BGN) cryptosystem.
@@ -1105,11 +1013,10 @@ int cp_ibe_gen(bn_t master, g1_t pub);
  *
  * @param[out] prv			- the private key.
  * @param[in] id			- the identity.
- * @param[in] len			- the length of identity in bytes.
  * @param[in] s				- the master key.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_ibe_gen_prv(g2_t prv, char *id, int len, bn_t master);
+int cp_ibe_gen_prv(g2_t prv, char *id, bn_t master);
 
 /**
  * Encrypts a message using the BF-IBE protocol.
@@ -1118,11 +1025,12 @@ int cp_ibe_gen_prv(g2_t prv, char *id, int len, bn_t master);
  * @param[in, out] out_len	- the buffer capacity and number of bytes written.
  * @param[in] in			- the input buffer.
  * @param[in] in_len		- the number of bytes to encrypt.
+ * @param[in] id			- the identity.
  * @param[in] pub			- the public key of the PKG.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_ibe_enc(uint8_t *out, int *out_len, uint8_t *in, int in_len,
-		char *id, int len, g1_t pub);
+int cp_ibe_enc(uint8_t *out, int *out_len, uint8_t *in, int in_len, char *id,
+	g1_t pub);
 
 /**
  * Decrypts a message using the BF-IBE protocol.
@@ -1507,7 +1415,7 @@ int cp_mpsb_gen(bn_t r[2], bn_t s[][2], g2_t h, g2_t x[2], g2_t y[][2], int l);
  * @param[in] l 			- the number of messages to sign.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
- int cp_mpsb_sig(g1_t a, g1_t b[2], bn_t m[][2], bn_t r[2], bn_t s[][2],
+int cp_mpsb_sig(g1_t a, g1_t b[2], bn_t m[][2], bn_t r[2], bn_t s[][2],
  		mt_t mul_tri[2], mt_t sm_tri[2], int l);
 
 /**
@@ -1664,7 +1572,6 @@ int cp_cmlhs_gen(bn_t x[], gt_t hs[], int len, uint8_t prf[], int plen,
  * @param[out] s 			- the fourth component of the signature.
  * @param[in] msg 			- the message vector to sign (one component).
  * @param[in] data 			- the dataset identifier.
- * @param[in] dlen 			- the length of the dataset identifier.
  * @param[in] label 		- the integer label.
  * @param[in] x 			- the exponent value for the label.
  * @param[in] h 			- the random value (message has one component).
@@ -1675,8 +1582,8 @@ int cp_cmlhs_gen(bn_t x[], gt_t hs[], int len, uint8_t prf[], int plen,
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
 int cp_cmlhs_sig(g1_t sig, g2_t z, g1_t a, g1_t c, g1_t r, g2_t s, bn_t msg,
-		char *data, int dlen, int label, bn_t x, g1_t h,
-		uint8_t prf[], int plen, bn_t sk, bn_t d);
+		char *data, int label, bn_t x, g1_t h, uint8_t prf[], int plen,
+		bn_t sk, bn_t d);
 
 /**
  * Applies a function over a set of CMLHS signatures from the same user.
@@ -1715,9 +1622,8 @@ int cp_cmlhs_evl(g1_t r, g2_t s, g1_t rs[], g2_t ss[], dig_t f[], int len);
  * @param[in] c				- the vector of second components of the signatures.
  * @param[in] msg 			- the combined message.
  * @param[in] data 			- the dataset identifier.
- * @param[in] dlen 			- the length of the dataset identifier.
- * @param[in] label 		- the integer labels.
  * @param[in] h				- the random element (message has one component).
+ * @param[in] label 		- the integer labels.
  * @param[in] hs 			- the hash values, one per label.
  * @param[in] f 			- the linear coefficients in the function.
  * @param[in] flen			- the number of coefficients.
@@ -1727,10 +1633,43 @@ int cp_cmlhs_evl(g1_t r, g2_t s, g1_t rs[], g2_t ss[], dig_t f[], int len);
  * @return a boolean value indicating the verification result.
  */
 int cp_cmlhs_ver(g1_t r, g2_t s, g1_t sig[], g2_t z[], g1_t a[], g1_t c[],
-		bn_t m, char *data, int dlen, int label[], g1_t h,
-		gt_t hs[][RLC_TERMS], dig_t f[][RLC_TERMS], int flen[], g2_t y[],
-		g2_t pk[], int slen);
+		bn_t m, char *data, g1_t h, int label[], gt_t *hs[],
+		dig_t *f[], int flen[], g2_t y[], g2_t pk[], int slen);
 
+/**
+ * Perform the offline verification of a CMLHS signature over a set of messages.
+ *
+ * @param[out] vk			- the verification key.
+ * @param[in] h				- the random element (message has one component).
+ * @param[in] label 		- the integer labels.
+ * @param[in] hs 			- the hash values, one per label.
+ * @param[in] f 			- the linear coefficients in the function.
+ * @param[in] flen			- the number of coefficients.
+ * @param[in] y 			- the public elements of the users.
+ * @param[in] pk 			- the public keys of the users.
+ * @param[in] slen 			- the number of signatures.
+ * @return a boolean value indicating the verification result.
+ */
+void cp_cmlhs_off(gt_t vk, g1_t h, int label[], gt_t *hs[], dig_t *f[],
+		int flen[],	g2_t y[], g2_t pk[], int slen);
+
+/**
+ * Perform the online verification of a CMLHS signature over a set of messages.
+ *
+ * @param[in] r 			- the first component of the homomorphic signature.
+ * @param[in] s 			- the second component of the homomorphic signature.
+ * @param[in] sig 			- the BLS signatures.
+ * @param[in] z 			- the powers of the outputs of the PRF.
+ * @param[in] a				- the vector of first components of the signatures.
+ * @param[in] c				- the vector of second components of the signatures.
+ * @param[in] msg 			- the combined message.
+ * @param[in] data 			- the dataset identifier.
+ * @param[in] h				- the random element (message has one component).
+ * @param[in] vk			- the verification key.
+ * @return a boolean value indicating the verification result.
+ */
+int cp_cmlhs_onv(g1_t r, g2_t s, g1_t sig[], g2_t z[], g1_t a[], g1_t c[],
+		bn_t msg, char *data, g1_t h, gt_t vk, g2_t y[], g2_t pk[], int slen);
 /**
  * Generates a key pair for the Multi-Key Homomorphic Signature (MKLHS) scheme.
  *
@@ -1746,14 +1685,12 @@ int cp_mklhs_gen(bn_t sk, g2_t pk);
  * @param[out] s 			- the resulting signature.
  * @param[in] m 			- the message to sign.
  * @param[in] data 			- the dataset identifier.
- * @param[in] dlen 			- the length of the dataset identifier.
- * @param[in] label 		- the label.
- * @param[in] llen 			- the length of the label.
+ * @param[in] id 			- the identity.
+ * @param[in] tag 			- the tag.
  * @param[in] sk 			- the private key for the signature scheme.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_mklhs_sig(g1_t s, bn_t m, char *data, int dlen, char *label, int llen,
-		bn_t sk);
+int cp_mklhs_sig(g1_t s, bn_t m, char *data, char *id, char *tag, bn_t sk);
 
 /**
  * Applies a function over a set of messages from the same user.
@@ -1769,7 +1706,7 @@ int cp_mklhs_fun(bn_t mu, bn_t m[], dig_t f[], int len);
 /**
  * Evaluates a function over a set of MKLHS signatures.
  *
- * @param[out] sig			- the resulting signature
+ * @param[out] sig			- the resulting signature.
  * @param[in] s				- the set of signatures.
  * @param[in] f 			- the linear coefficients in the function.
  * @param[in] len			- the number of coefficients.
@@ -1784,18 +1721,16 @@ int cp_mklhs_evl(g1_t sig, g1_t s[], dig_t f[], int len);
  * @param[in] m 			- the signed message.
  * @param[in] mu			- the vector of signed messages per user.
  * @param[in] data 			- the dataset identifier.
- * @param[in] dlen 			- the length of the dataset identifier.
- * @param[in] label 		- the vector of labels.
- * @param[in] llen 			- the vector of label lengths.
+ * @param[in] id 			- the vector of identities.
+ * @param[in] tag	 		- the vector of tags.
  * @param[in] f 			- the linear coefficients in the function.
  * @param[in] flen			- the number of coefficients.
  * @param[in] pk 			- the public keys of the users.
  * @param[in] slen 			- the number of signatures.
  * @return a boolean value indicating the verification result.
  */
-int cp_mklhs_ver(g1_t sig, bn_t m, bn_t mu[], char *data, int dlen,
-		char *label[], int llen[], dig_t f[][RLC_TERMS], int flen[], g2_t pk[],
-		int slen);
+int cp_mklhs_ver(g1_t sig, bn_t m, bn_t mu[], char *data, char *id[],
+	char *tag[], dig_t *f[], int flen[], g2_t pk[], int slen);
 
 /**
  * Computes the offline part of veryfying a MKLHS signature over a set of
@@ -1803,15 +1738,15 @@ int cp_mklhs_ver(g1_t sig, bn_t m, bn_t mu[], char *data, int dlen,
  *
  * @param[out] h 			- the hashes of labels
  * @param[out] ft 			- the precomputed linear coefficients.
- * @param[in] label 		- the vector of labels.
- * @param[in] llen 			- the vector of label lengths.
+ * @param[in] id 			- the vector of identities.
+ * @param[in] tag 			- the vector of tags.
  * @param[in] f 			- the linear coefficients in the function.
  * @param[in] flen			- the number of coefficients.
  * @param[in] slen 			- the number of signatures.
  * @return RLC_OK if no errors occurred, RLC_ERR otherwise.
  */
-int cp_mklhs_off(g1_t h[], dig_t ft[], char *label[], int llen[],
-	dig_t f[][RLC_TERMS], int flen[], int slen);
+int cp_mklhs_off(g1_t h[], dig_t ft[], char *id[], char *tag[], dig_t *f[],
+	int flen[], int slen);
 
 /**
  * Computes the online part of veryfying a MKLHS signature over a set of
@@ -1821,14 +1756,14 @@ int cp_mklhs_off(g1_t h[], dig_t ft[], char *label[], int llen[],
  * @param[in] m 			- the signed message.
  * @param[in] mu			- the vector of signed messages per user.
  * @param[in] data 			- the dataset identifier.
- * @param[in] dlen 			- the length of the dataset identifier.
+ * @param[in] id 			- the vector of identities.
  * @param[in] d 			- the hashes of labels.
  * @param[in] ft 			- the precomputed linear coefficients.
  * @param[in] pk 			- the public keys of the users.
  * @param[in] slen 			- the number of signatures.
  * @return a boolean value indicating the verification result.
  */
-int cp_mklhs_onv(g1_t sig, bn_t m, bn_t mu[], char *data, int dlen,
-		g1_t h[], dig_t ft[], g2_t pk[], int slen);
+int cp_mklhs_onv(g1_t sig, bn_t m, bn_t mu[], char *data, char *id[], g1_t h[],
+	dig_t ft[],	g2_t pk[], int slen);
 
 #endif /* !RLC_CP_H */

@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2012 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -30,6 +30,10 @@
  *
  * Interface of the module for arithmetic on prime elliptic curves defined over
  * extension fields.
+
+ * The scalar multiplication functions are only guaranteed to work
+ * in the prime order subgroup used by pairings. If you need a generic scalar
+ * multiplication function, use \sa ep2_mul_big().
  *
  * @ingroup epx
  */
@@ -169,11 +173,6 @@ typedef struct {
 	fp2_t yn[RLC_EPX_CTMAP_MAX];
 	/** y denominator coefficients */
 	fp2_t yd[RLC_EPX_CTMAP_MAX];
-#if ALLOC == STACK
-	/** In case of stack allocation, storage for the values in this struct. */
-	/* a, b, and the elms in xn, xd, yn, yd */
-	fp2_st storage[2 + 4 * RLC_EPX_CTMAP_MAX];
-#endif /* ALLOC == DYNAMIC or STACK */
 } iso2_st;
 
 /**
@@ -206,7 +205,7 @@ typedef iso2_st *iso2_t;
 #define ep2_new(A)															\
 	A = (ep2_t)calloc(1, sizeof(ep2_st));									\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	fp2_null((A)->x);														\
 	fp2_null((A)->y);														\
@@ -217,13 +216,6 @@ typedef iso2_st *iso2_t;
 
 #elif ALLOC == AUTO
 #define ep2_new(A)				/* empty */
-
-#elif ALLOC == STACK
-#define ep2_new(A)															\
-	A = (ep2_t)alloca(sizeof(ep2_st));										\
-	fp2_new((A)->x);														\
-	fp2_new((A)->y);														\
-	fp2_new((A)->z);														\
 
 #endif
 
@@ -244,8 +236,6 @@ typedef iso2_st *iso2_t;
 
 #elif ALLOC == AUTO
 #define ep2_free(A)				/* empty */
-#elif ALLOC == STACK
-#define ep2_free(A)				A = NULL;
 #endif
 
 /**
@@ -276,12 +266,22 @@ typedef iso2_st *iso2_t;
 #endif
 
 /**
- * Multiplies a point in an elliptic curve over a quadratic extension field.
- * Computes R = kP.
+ * Multiplies a point in an elliptic curve over a quadratic extension field by
+ * an unrestricted integer scalar. Computes R = [k]P.
  *
- * @param[out] R			- the result.
- * @param[in] P				- the point to multiply.
- * @param[in] K				- the integer.
+ * @param[out] R				- the result.
+ * @param[in] P					- the point to multiply.
+ * @param[in] K					- the integer.
+ */
+#define ep2_mul_big(R, P, K)	ep2_mul_basic(R, P, K)
+
+/**
+ * Multiplies a point in an elliptic curve over a quadratic extension field.
+ * Computes R = [k]P.
+ *
+ * @param[out] R				- the result.
+ * @param[in] P					- the point to multiply.
+ * @param[in] K					- the integer.
  */
 #if EP_MUL == BASIC
 #define ep2_mul(R, P, K)		ep2_mul_basic(R, P, K)
@@ -307,15 +307,13 @@ typedef iso2_st *iso2_t;
 #elif EP_FIX == COMBD
 #define ep2_mul_pre(T, P)		ep2_mul_pre_combd(T, P)
 #elif EP_FIX == LWNAF
-#define ep2_mul_pre(T, P)		ep2_mul_pre_lwnaf(T, P)
-#elif EP_FIX == GLV
 //TODO: implement ep2_mul_pre_glv
 #define ep2_mul_pre(T, P)		ep2_mul_pre_lwnaf(T, P)
 #endif
 
 /**
  * Multiplies a fixed prime elliptic point over a quadratic extension using a
- * precomputation table. Computes R = kP.
+ * precomputation table. Computes R = [k]P.
  *
  * @param[out] R				- the result.
  * @param[in] T					- the precomputation table.
@@ -328,15 +326,13 @@ typedef iso2_st *iso2_t;
 #elif EP_FIX == COMBD
 #define ep2_mul_fix(R, T, K)	ep2_mul_fix_combd(R, T, K)
 #elif EP_FIX == LWNAF
-#define ep2_mul_fix(R, T, K)	ep2_mul_fix_lwnaf(R, T, K)
-#elif EP_FIX == GLV
-//TODO: implement ep2_mul_pre_glv
+//TODO: implement ep2_mul_fix_glv
 #define ep2_mul_fix(R, T, K)	ep2_mul_fix_lwnaf(R, T, K)
 #endif
 
 /**
  * Multiplies and adds two prime elliptic curve points simultaneously. Computes
- * R = kP + lQ.
+ * R = [k]P + [l]Q.
  *
  * @param[out] R				- the result.
  * @param[in] P					- the first point to multiply.
@@ -723,6 +719,17 @@ void ep2_mul_gen(ep2_t r, bn_t k);
  */
 void ep2_mul_dig(ep2_t r, ep2_t p, dig_t k);
 
+
+/**
+ * Multiplies a point in an elliptic curve over a quadratic extension field by
+ * the curve cofactor or a small multiple for which a short vector exists.
+ * In short, it takes a point in the curve to the large prime-order subgroup.
+ *
+ * @param[out] R				- the result.
+ * @param[in] P					- the point to multiply.
+ */
+void ep2_mul_cof(ep2_t r, ep2_t p);
+
 /**
  * Builds a precomputation table for multiplying a fixed prime elliptic point
  * using the binary method.
@@ -886,10 +893,11 @@ void ep2_mul_sim_inter(ep2_t r, ep2_t p, bn_t k, ep2_t q, bn_t m);
 void ep2_mul_sim_joint(ep2_t r, ep2_t p, bn_t k, ep2_t q, bn_t m);
 
 /**
- * Multiplies simultaneously elements from G_2. Computes R = \Sum_i=0..n k_iP_i.
+ * Multiplies simultaneously elements from a prime elliptic curve.
+ * Computes R = \Sum_i=0..n k_iP_i.
  *
  * @param[out] r			- the result.
- * @param[out] p			- the G_2 elements to multiply.
+ * @param[out] p			- the points to multiply.
  * @param[out] k			- the integer scalars.
  * @param[out] n			- the number of elements to multiply.
  */
@@ -897,7 +905,7 @@ void ep2_mul_sim_lot(ep2_t r, ep2_t p[], const bn_t k[], int n);
 
 /**
  * Multiplies and adds the generator and a prime elliptic curve point
- * simultaneously. Computes R = kG + lQ.
+ * simultaneously. Computes R = [k]G + [l]Q.
  *
  * @param[out] r			- the result.
  * @param[in] k				- the first integer.

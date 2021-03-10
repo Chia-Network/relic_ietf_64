@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -102,7 +102,7 @@ typedef struct {
 #if ALLOC == DYNAMIC
 	/** The sequence of contiguous digits that forms this integer. */
 	dig_t *dp;
-#elif ALLOC == STACK || ALLOC == AUTO
+#elif ALLOC == AUTO
 	/** The sequence of contiguous digits that forms this integer. */
 	rlc_align dig_t dp[RLC_BN_SIZE];
 #endif
@@ -113,8 +113,12 @@ typedef struct {
  */
 #if ALLOC == AUTO
 typedef bn_st bn_t[1];
+#elif ALLOC == DYNAMIC
+#ifdef CHECK
+typedef bn_st *volatile bn_t;
 #else
 typedef bn_st *bn_t;
+#endif
 #endif
 
 /*============================================================================*/
@@ -127,8 +131,8 @@ typedef bn_st *bn_t;
  * @param[out] A			- the multiple precision integer to initialize.
  */
 #if ALLOC == AUTO
-#define bn_null(A)				/* empty */
-#else
+#define bn_null(A)			/* empty */
+#elif ALLOC == DYNAMIC
 #define bn_null(A)			A = NULL;
 #endif
 
@@ -142,17 +146,12 @@ typedef bn_st *bn_t;
 #define bn_new(A)															\
 	A = (bn_t)calloc(1, sizeof(bn_st));										\
 	if ((A) == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_init(A, RLC_BN_SIZE);												\
 
 #elif ALLOC == AUTO
 #define bn_new(A)															\
-	bn_init(A, RLC_BN_SIZE);												\
-
-#elif ALLOC == STACK
-#define bn_new(A)															\
-	A = (bn_t)alloca(sizeof(bn_st));										\
 	bn_init(A, RLC_BN_SIZE);												\
 
 #endif
@@ -171,17 +170,12 @@ typedef bn_st *bn_t;
 #define bn_new_size(A, D)													\
 	A = (bn_t)calloc(1, sizeof(bn_st));										\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 	bn_init(A, D);															\
 
 #elif ALLOC == AUTO
 #define bn_new_size(A, D)													\
-	bn_init(A, D);															\
-
-#elif ALLOC == STACK
-#define bn_new_size(A, D)													\
-	A = (bn_t)alloca(sizeof(bn_st));										\
 	bn_init(A, D);															\
 
 #endif
@@ -195,16 +189,12 @@ typedef bn_st *bn_t;
 #define bn_free(A)															\
 	if (A != NULL) {														\
 		bn_clean(A);														\
-		free(A);															\
+		free((void *)A);													\
 		A = NULL;															\
 	}
 
 #elif ALLOC == AUTO
 #define bn_free(A)			/* empty */										\
-
-#elif ALLOC == STACK
-#define bn_free(A)															\
-	A = NULL;																\
 
 #endif
 

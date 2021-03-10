@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -151,17 +151,6 @@ dig_t bn_lsh1_low(dig_t *c, const dig_t *a, int size);
 dig_t bn_lshb_low(dig_t *c, const dig_t *a, int size, int bits);
 
 /**
- * Shifts a digit vector to the left by some digits.
- * Computes c = a << (digits * RLC_DIG).
- *
- * @param[out] c			- the result.
- * @param[in] a				- the multiple precision integer to shift.
- * @param[in] size			- the number of digits to shift.
- * @param[in] digits		- the shift amount.
- */
-void bn_lshd_low(dig_t *c, const dig_t *a, int size, int digits);
-
-/**
  * Shifts a digit vector to the right by 1 bit. Computes c = a >> 1.
  *
  * @param[out] c			- the result
@@ -184,17 +173,6 @@ dig_t bn_rsh1_low(dig_t *c, const dig_t *a, int size);
 dig_t bn_rshb_low(dig_t *c, const dig_t *a, int size, int bits);
 
 /**
- * Shifts a digit vector to the right by some digits.
- * Computes c = a >> (digits * RLC_DIG).
- *
- * @param[out] c			- the result.
- * @param[in] a				- the multiple precision integer to shift.
- * @param[in] size			- the number of digits to shift.
- * @param[in] digits		- the shift amount.
- */
-void bn_rshd_low(dig_t *c, const dig_t *a, int size, int digits);
-
-/**
  * Multiplies a digit vector by a digit and adds this result to another digit
  * vector. Computes c = c + a * digit.
  *
@@ -202,7 +180,7 @@ void bn_rshd_low(dig_t *c, const dig_t *a, int size, int digits);
  * @param[in] a				- the digit vector to multiply.
  * @param[in] digit			- the digit to multiply.
  * @param[in] size			- the number of digits to multiply.
- * @return the carry of the addition.
+ * @return the carry of the last addition.
  */
 dig_t bn_mula_low(dig_t *c, const dig_t *a, dig_t digit, int size);
 
@@ -250,9 +228,10 @@ void bn_muld_low(dig_t *c, const dig_t *a, int sa, const dig_t *b, int sb,
  *
  * @param[out] c			- the result.
  * @param[in] a				- the digit vector to square.
- * @param[in] size			- the number of digitss to square.
+ * @param[in] size			- the number of digits to square.
+ * @return the carry of the last addition.
  */
-void bn_sqra_low(dig_t *c, const dig_t *a, int size);
+dig_t bn_sqra_low(dig_t *c, const dig_t *a, int size);
 
 /**
  * Squares a digit vector. Computes c = a * a.

@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -40,6 +40,14 @@
 #include "relic_label.h"
 #include "relic_util.h"
 
+#if OPSYS == LINUX && TIMER == PERF
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <linux/perf_event.h>
+#endif
+
 /*============================================================================*/
 /* Macro definitions                                                          */
 /*============================================================================*/
@@ -49,23 +57,26 @@
  *
  * @param[in] LABEL			- the label for this benchmark.
  * @param[in] FUNCTION		- the function to benchmark.
+ * @param[in] N				- the amortization factor.
  */
-#define BENCH_ONCE(LABEL, FUNCTION)											\
+#define BENCH_ONE(LABEL, FUNCTION, N)										\
 	bench_reset();															\
 	util_print("BENCH: " LABEL "%*c = ", (int)(32 - strlen(LABEL)), ' ');	\
 	bench_before();															\
 	FUNCTION;																\
 	bench_after();															\
-	bench_compute(1);														\
+	bench_compute(N);														\
 	bench_print();															\
 
 /**
- * Runs a new benchmark a small number of times.
+ * Runs a new benchmark a small number of times and prints the average timing
+ * amortized by N.
  *
  * @param[in] LABEL			- the label for this benchmark.
  * @param[in] FUNCTION		- the function to benchmark.
+ * @param[in] N				- the amortization factor.
  */
-#define BENCH_SMALL(LABEL, FUNCTION)										\
+#define BENCH_FEW(LABEL, FUNCTION, N)										\
 	bench_reset();															\
 	util_print("BENCH: " LABEL "%*c = ", (int)(32 - strlen(LABEL)), ' ');	\
 	bench_before();															\
@@ -73,7 +84,7 @@
 		FUNCTION;															\
 	}																		\
 	bench_after();															\
-	bench_compute(BENCH);													\
+	bench_compute(BENCH * (N));												\
 	bench_print();															\
 
 /**
@@ -81,7 +92,7 @@
  *
  * @param[in] LABEL			- the label for this benchmark.
  */
-#define BENCH_BEGIN(LABEL)													\
+#define BENCH_RUN(LABEL)													\
 	bench_reset();															\
 	util_print("BENCH: " LABEL "%*c = ", (int)(32 - strlen(LABEL)), ' ');	\
 	for (int _b = 0; _b < BENCH; _b++)	{									\
@@ -112,7 +123,7 @@
 #define BENCH_ADD(FUNCTION)													\
 	FUNCTION;																\
 	bench_before();															\
-	for (int _b = 0; _b < BENCH; _b++) {										\
+	for (int _b = 0; _b < BENCH; _b++) {									\
 		FUNCTION;															\
 	}																		\
 	bench_after();															\
@@ -126,37 +137,43 @@
  */
 #if OPSYS == DUINO && TIMER == HREAL
 
-typedef uint32_t bench_t;
+typedef uint32_t ben_t;
 
 #elif TIMER == HREAL || TIMER == HPROC || TIMER == HTHRD
 
 #include <sys/time.h>
 #include <time.h>
-typedef struct timespec bench_t;
+typedef struct timespec ben_t;
 
 #elif TIMER == ANSI
 
 #include <time.h>
-typedef clock_t bench_t;
+typedef clock_t ben_t;
 
 #elif TIMER == POSIX
 
 #include <sys/time.h>
-typedef struct timeval bench_t;
+typedef struct timeval ben_t;
 
-#elif TIMER == CYCLE
+#else /* TIMER == CYCLE || TIMER == PERF */
 
-typedef unsigned long long bench_t;
-
-#else
-
-typedef unsigned long long bench_t;
+typedef unsigned long long ben_t;
 
 #endif
 
 /*============================================================================*/
 /* Function prototypes                                                        */
 /*============================================================================*/
+
+/**
+ * Initializes the benchmarking module.
+ */
+void bench_init(void);
+
+/**
+ * Finalizes the benchmarking module.
+ */
+void bench_clean(void);
 
 /**
  * Measures and prints benchmarking overhead.
@@ -197,6 +214,6 @@ void bench_print(void);
  *
  * @return the last benchmark.
  */
-ull_t bench_total(void);
+ull_t ben_total(void);
 
 #endif /* !RLC_BENCH_H */

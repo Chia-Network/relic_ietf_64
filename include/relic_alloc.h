@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2018 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -31,7 +31,7 @@
 
 #include "relic_conf.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
 
 #include <malloc.h>
 
@@ -52,7 +52,11 @@
 
 #else /* _MSC_VER */
 
+#if OPSYS == FREEBSD || OPSYS == NETBSD
+#include <stdlib.h>
+#else
 #include <alloca.h>
+#endif
 
 /*
  * Dynamiclly allocates an array of "Type" with the specified size on the stack.
@@ -79,7 +83,7 @@
 #if ALLOC == DYNAMIC
 #define RLC_FREE(A)															\
 	if (A != NULL) {														\
-		free(A);															\
+		free((void *)A);													\
 		A = NULL;															\
 	}
 #else

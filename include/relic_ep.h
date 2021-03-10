@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -29,6 +29,10 @@
  * @file
  *
  * Interface of the module for arithmetic on prime elliptic curves.
+ *
+ * The scalar multiplication functions are only guaranteed to work
+ * in the large prime order subgroup. If you need a generic scalar
+ * multiplication function, use ep_mul_basic().
  *
  * @ingroup ep
  */
@@ -69,6 +73,8 @@ enum {
 	CURVE_1174,
 	/** Curve25519 prime curve. */
 	CURVE_25519,
+	/** Curve Tweedledum given by Daira Hopwoord at https://github.com/daira/tweedle */
+	TWEEDLEDUM,
 	/** NIST P-256 prime curve. */
 	NIST_P256,
 	/** Brainpool P256r1 curve. */
@@ -119,14 +125,18 @@ enum {
 	B12_P638,
 	/** 1536-bit supersingular curve. */
 	SS_P1536,
+	/** 3072-bit supersingular curve. */
+	SS_P3072,
 };
 
 /**
  * Pairing-friendly elliptic curve identifiers.
  */
 enum {
+	/** Supersingular curves with embedding degree 1. */
+	EP_SS1 = 1,
 	/** Supersingular curves with embedding degree 2. */
-	EP_SS2 = 1,
+	EP_SS2,
 	/** Barreto-Naehrig. */
 	EP_BN,
 	/* Optimal TNFS-secure. */
@@ -152,12 +162,12 @@ enum {
 /**
  * Denotes a divisive twist.
  */
-#define RLC_EP_DTYPE		1
+#define RLC_EP_DTYPE			1
 
 /**
  * Denotes a multiplicative twist.
  */
-#define RLC_EP_MTYPE		2
+#define RLC_EP_MTYPE			2
 
 /**
  * Size of a precomputation table using the binary method.
@@ -196,16 +206,16 @@ enum {
  * Maximum size of a precomputation table.
  */
 #ifdef STRIP
-#define RLC_EP_TABLE_MAX 	RLC_EP_TABLE
+#define RLC_EP_TABLE_MAX 		RLC_EP_TABLE
 #else
-#define RLC_EP_TABLE_MAX 	RLC_MAX(RLC_EP_TABLE_BASIC, RLC_EP_TABLE_COMBD)
+#define RLC_EP_TABLE_MAX 		RLC_MAX(RLC_EP_TABLE_BASIC, RLC_EP_TABLE_COMBD)
 #endif
 
 /**
  * Maximum number of coefficients of an isogeny map polynomial.
  * RLC_TERMS of value 16 is sufficient for a degree-11 isogeny polynomial.
  */
-#define RLC_EP_CTMAP_MAX   16
+#define RLC_EP_CTMAP_MAX		16
 
 /*============================================================================*/
 /* Type definitions                                                           */
@@ -276,9 +286,9 @@ typedef iso_st *iso_t;
  * @param[out] A			- the point to initialize.
  */
 #if ALLOC == AUTO
-#define ep_null(A)				/* empty */
+#define ep_null(A)			/* empty */
 #else
-#define ep_null(A)		A = NULL;
+#define ep_null(A)			A = NULL;
 #endif
 
 /**
@@ -291,15 +301,11 @@ typedef iso_st *iso_t;
 #define ep_new(A)															\
 	A = (ep_t)calloc(1, sizeof(ep_st));										\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 
 #elif ALLOC == AUTO
-#define ep_new(A)				/* empty */
-
-#elif ALLOC == STACK
-#define ep_new(A)															\
-	A = (ep_t)alloca(sizeof(ep_st));										\
+#define ep_new(A)			/* empty */
 
 #endif
 
@@ -316,11 +322,7 @@ typedef iso_st *iso_t;
 	}
 
 #elif ALLOC == AUTO
-#define ep_free(A)				/* empty */
-
-#elif ALLOC == STACK
-#define ep_free(A)															\
-	A = NULL;																\
+#define ep_free(A)			/* empty */
 
 #endif
 
@@ -354,7 +356,7 @@ typedef iso_st *iso_t;
 #endif
 
 /**
- * Multiplies a prime elliptic curve point by an integer. Computes R = kP.
+ * Multiplies a prime elliptic curve point by an integer. Computes R = [k]P.
  *
  * @param[out] R			- the result.
  * @param[in] P				- the point to multiply.
@@ -379,22 +381,22 @@ typedef iso_st *iso_t;
  * @param[in] P				- the point to multiply.
  */
 #if EP_FIX == BASIC
-#define ep_mul_pre(T, P)		ep_mul_pre_basic(T, P)
+#define ep_mul_pre(T, P)	ep_mul_pre_basic(T, P)
 #elif EP_FIX == COMBS
-#define ep_mul_pre(T, P)		ep_mul_pre_combs(T, P)
+#define ep_mul_pre(T, P)	ep_mul_pre_combs(T, P)
 #elif EP_FIX == COMBD
-#define ep_mul_pre(T, P)		ep_mul_pre_combd(T, P)
+#define ep_mul_pre(T, P)	ep_mul_pre_combd(T, P)
 #elif EP_FIX == LWNAF
-#define ep_mul_pre(T, P)		ep_mul_pre_lwnaf(T, P)
+#define ep_mul_pre(T, P)	ep_mul_pre_lwnaf(T, P)
 #endif
 
 /**
  * Multiplies a fixed prime elliptic point using a precomputation table.
- * Computes R = kP.
+ * Computes R = [k]P.
  *
- * @param[out] R			- the result.
- * @param[in] T				- the precomputation table.
- * @param[in] K				- the integer.
+ * @param[out] R				- the result.
+ * @param[in] T					- the precomputation table.
+ * @param[in] K					- the integer.
  */
 #if EP_FIX == BASIC
 #define ep_mul_fix(R, T, K)		ep_mul_fix_basic(R, T, K)
@@ -407,8 +409,8 @@ typedef iso_st *iso_t;
 #endif
 
 /**
- * Multiplies and adds two prime elliptic curve points simultaneously. Computes
- * R = kP + mQ.
+ * Multiplies and adds two prime elliptic curve points simultaneously.
+ * Computes R = [k]P + [m]Q.
  *
  * @param[out] R			- the result.
  * @param[in] P				- the first point to multiply.
@@ -500,24 +502,24 @@ int ep_curve_opt_b3(void);
 /**
  * Multiplies a field element by the a-coefficient of the curve.
  *
- * @param[out] c				- the result.
- * @param[in] a					- the field element to multiply.
+ * @param[out] c			- the result.
+ * @param[in] a				- the field element to multiply.
  */
 void ep_curve_mul_a(fp_t c, const fp_t a);
 
 /**
  * Multiplies a field element by the b-coefficient of the curve.
  *
- * @param[out] c				- the result.
- * @param[in] a					- the field element to multiply.
+ * @param[out] c			- the result.
+ * @param[in] a				- the field element to multiply.
  */
 void ep_curve_mul_b(fp_t c, const fp_t a);
 
 /**
  * Multiplies a field element by the b3 value of the curve.
  *
- * @param[out] c				- the result.
- * @param[in] a					- the field element to multiply.
+ * @param[out] c			- the result.
+ * @param[in] a				- the field element to multiply.
  */
 void ep_curve_mul_b3(fp_t c, const fp_t a);
 /**
@@ -900,6 +902,7 @@ void ep_dbl_jacob(ep_t r, const ep_t p);
 
 /**
  * Multiplies a prime elliptic point by an integer using the binary method.
+ * There is no restriction on the scalar.
  *
  * @param[out] r			- the result.
  * @param[in] p				- the point to multiply.
@@ -1129,8 +1132,18 @@ void ep_mul_sim_joint(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 		const bn_t m);
 
 /**
+ * Multiplies simultaneously elements from G_2. Computes R = \Sum_i=0..n k_iP_i.
+ *
+ * @param[out] r			- the result.
+ * @param[out] p			- the G_2 elements to multiply.
+ * @param[out] k			- the integer scalars.
+ * @param[out] n			- the number of elements to multiply.
+ */
+void ep_mul_sim_lot(ep_t r, ep_t p[], const bn_t k[], int n);
+
+/**
  * Multiplies and adds the generator and a prime elliptic curve point
- * simultaneously. Computes R = kG + mQ.
+ * simultaneously. Computes R = [k]G + [m]Q.
  *
  * @param[out] r			- the result.
  * @param[in] k				- the first integer.

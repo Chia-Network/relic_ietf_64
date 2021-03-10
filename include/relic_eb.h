@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -157,9 +157,9 @@ typedef eb_st *eb_t;
  * @param[out] A			- the point to initialize.
  */
 #if ALLOC == AUTO
-#define eb_null(A)				/* empty */
+#define eb_null(A)			/* empty */
 #else
-#define eb_null(A)		A = NULL;
+#define eb_null(A)			A = NULL;
 #endif
 
 /**
@@ -172,15 +172,11 @@ typedef eb_st *eb_t;
 #define eb_new(A)															\
 	A = (eb_t)calloc(1, sizeof(eb_st));										\
 	if (A == NULL) {														\
-		RLC_THROW(ERR_NO_MEMORY);												\
+		RLC_THROW(ERR_NO_MEMORY);											\
 	}																		\
 
 #elif ALLOC == AUTO
-#define eb_new(A)				/* empty */
-
-#elif ALLOC == STACK
-#define eb_new(A)															\
-	A = (eb_t)alloca(sizeof(eb_st));										\
+#define eb_new(A)			/* empty */
 
 #endif
 
@@ -197,11 +193,7 @@ typedef eb_st *eb_t;
 	}																		\
 
 #elif ALLOC == AUTO
-#define eb_free(A)				/* empty */
-
-#elif ALLOC == STACK
-#define eb_free(A)															\
-	A = NULL;																\
+#define eb_free(A)			/* empty */
 
 #endif
 
@@ -269,7 +261,7 @@ typedef eb_st *eb_t;
 #endif
 
 /**
- * Multiplies a binary elliptic curve point by an integer. Computes R = kP.
+ * Multiplies a binary elliptic curve point by an integer. Computes R = [k]P.
  *
  * @param[out] R			- the result.
  * @param[in] P				- the point to multiply.
@@ -295,36 +287,36 @@ typedef eb_st *eb_t;
  * @param[in] P				- the point to multiply.
  */
 #if EB_FIX == BASIC
-#define eb_mul_pre(T, P)		eb_mul_pre_basic(T, P)
+#define eb_mul_pre(T, P)	eb_mul_pre_basic(T, P)
 #elif EB_FIX == COMBS
-#define eb_mul_pre(T, P)		eb_mul_pre_combs(T, P)
+#define eb_mul_pre(T, P)	eb_mul_pre_combs(T, P)
 #elif EB_FIX == COMBD
-#define eb_mul_pre(T, P)		eb_mul_pre_combd(T, P)
+#define eb_mul_pre(T, P)	eb_mul_pre_combd(T, P)
 #elif EB_FIX == LWNAF
-#define eb_mul_pre(T, P)		eb_mul_pre_lwnaf(T, P)
+#define eb_mul_pre(T, P)	eb_mul_pre_lwnaf(T, P)
 #endif
 
 /**
  * Multiplies a fixed binary elliptic point using a precomputation table.
- * Computes R = kP.
+ * Computes R = [k]P.
  *
  * @param[out] R			- the result.
  * @param[in] T				- the precomputation table.
  * @param[in] K				- the integer.
  */
 #if EB_FIX == BASIC
-#define eb_mul_fix(R, T, K)		eb_mul_fix_basic(R, T, K)
+#define eb_mul_fix(R, T, K)	eb_mul_fix_basic(R, T, K)
 #elif EB_FIX == COMBS
-#define eb_mul_fix(R, T, K)		eb_mul_fix_combs(R, T, K)
+#define eb_mul_fix(R, T, K)	eb_mul_fix_combs(R, T, K)
 #elif EB_FIX == COMBD
-#define eb_mul_fix(R, T, K)		eb_mul_fix_combd(R, T, K)
+#define eb_mul_fix(R, T, K)	eb_mul_fix_combd(R, T, K)
 #elif EB_FIX == LWNAF
-#define eb_mul_fix(R, T, K)		eb_mul_fix_lwnaf(R, T, K)
+#define eb_mul_fix(R, T, K)	eb_mul_fix_lwnaf(R, T, K)
 #endif
 
 /**
  * Multiplies and adds two binary elliptic curve points simultaneously. Computes
- * R = kP + mQ.
+ * R = [k]P + [m]Q.
  *
  * @param[out] R			- the result.
  * @param[in] P				- the first point to multiply.
@@ -920,7 +912,7 @@ void eb_mul_sim_joint(eb_t r, const eb_t p, const bn_t k, const eb_t q,
 
 /**
  * Multiplies and adds the generator and a binary elliptic curve point
- * simultaneously. Computes R = kG + mQ.
+ * simultaneously. Computes R = [k]G + [m]Q.
  *
  * @param[out] r			- the result.
  * @param[in] k				- the first integer.

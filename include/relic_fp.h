@@ -1,6 +1,6 @@
 /*
  * RELIC is an Efficient LIbrary for Cryptography
- * Copyright (C) 2007-2020 RELIC Authors
+ * Copyright (c) 2009 RELIC Authors
  *
  * This file is part of RELIC. RELIC is legal property of its developers,
  * whose names are not listed here. Please refer to the COPYRIGHT file
@@ -82,6 +82,8 @@ enum {
 	PRIME_22605,
 	/* Curve1174 251-bit prime modulus. */
 	PRIME_25109,
+	/** Prime with high 2-adicity for curve Tweedledum. */
+	PRIME_H2ADC,
 	/** Curve25519 255-bit prime modulus. */
 	PRIME_25519,
 	/** NIST 256-bit fast reduction polynomial. */
@@ -134,6 +136,8 @@ enum {
 	B12_638,
 	/** 1536-bit prime for supersingular curve with embedding degree k = 2. */
 	SS_1536,
+	/** 3072-bit prime for supersingular curve with embedding degree k = 1. */
+	SS_3072,
 };
 
 /**
@@ -196,11 +200,6 @@ typedef rlc_align dig_t fp_st[RLC_FP_DIGS + RLC_PAD(RLC_FP_BYTES)/(RLC_DIG / 8)]
 #define fp_new(A)			dv_new_dynam((dv_t *)&(A), RLC_FP_DIGS)
 #elif ALLOC == AUTO
 #define fp_new(A)			/* empty */
-#elif ALLOC == STACK
-#define fp_new(A)															\
-	A = (dig_t *)alloca(RLC_FP_BYTES + RLC_PAD(RLC_FP_BYTES));				\
-	A = (dig_t *)RLC_ALIGN(A);												\
-
 #endif
 
 /**
@@ -212,8 +211,6 @@ typedef rlc_align dig_t fp_st[RLC_FP_DIGS + RLC_PAD(RLC_FP_BYTES)/(RLC_DIG / 8)]
 #define fp_free(A)			dv_free_dynam((dv_t *)&(A))
 #elif ALLOC == AUTO
 #define fp_free(A)			/* empty */
-#elif ALLOC == STACK
-#define fp_free(A)			A = NULL;
 #endif
 
 /**
@@ -543,6 +540,13 @@ int fp_param_set_any_pmers(void);
  * @return RLC_OK if no errors occurred; RLC_ERR otherwise.
  */
 int fp_param_set_any_tower(void);
+
+/**
+ * Assigns the order of the prime field to a prime with high 2-adicity..
+ *
+ * @return RLC_OK if no errors occurred; RLC_ERR otherwise.
+ */
+int fp_param_set_any_h2adc(void);
 
 /**
  * Prints the currently configured prime modulus.
