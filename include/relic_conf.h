@@ -674,13 +674,12 @@
 /** OpenBSD operating system. */
 #define OPENBSD  7
 /** Detected operation system. */
-/* #undef OPSYS */
+#define OPSYS    WINDOWS
 
 /** OpenMP multithreading support. */
 #define OPENMP   1
 /** POSIX multithreading support. */
 #define PTHREAD  2
-#define PYTHON   3
 /** Chosen multithreading API. */
 #define MULTI    PYTHON
 
@@ -699,7 +698,7 @@
 /** Performance monitoring framework. */
 #define PERF     7
 /** Chosen timer. */
-#define TIMER    CYCLE
+#define TIMER    ANSI
 
 /** Prefix to identity this build of the library. */
 /* #undef LABEL */
