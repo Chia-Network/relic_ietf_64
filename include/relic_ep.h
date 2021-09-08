@@ -97,6 +97,8 @@ enum {
 	BN_P254,
 	/** Barreto-Naehrig curve with negative x. */
 	BN_P256,
+	/** Barreto-Naehrig curve standardized in China. */
+	SM9_P256,
 	/** Barreto-Lynn-Scott curve with embedding degree 12 (ZCash curve). */
 	B12_P381,
 	/** Barreto-Naehrig curve with negative x. */
@@ -116,7 +118,7 @@ enum {
 	/** Optimal TNFS-secure curve with embedding degree 8. */
 	OT8_P511,
 	/** Cocks-pinch curve with embedding degree 8. */
-	CP8_P544,
+	GMT8_P544,
 	/** Kachisa-Scott-Schaefer curve with embedding degree 54. */
 	K54_P569,
 	/** Barreto-Lynn-Scott curve with embedding degree 48. */
@@ -144,7 +146,7 @@ enum {
 	/* Optimal TNFS-secure. */
 	EP_OT8,
 	/* Cocks-Pinch curve. */
-	EP_CP8,
+	EP_GMT8,
 	/* Barreto-Lynn-Scott with embedding degree 12. */
 	EP_B12,
 	/* Kachisa-Schafer-Scott with embedding degree 16. */
@@ -1195,6 +1197,18 @@ void ep_norm(ep_t r, const ep_t p);
 void ep_norm_sim(ep_t *r, const ep_t *t, int n);
 
 /**
+ * Maps an array of uniformly random bytes to a point in a prime elliptic
+ * curve.
+ * That array is expected to have a length suitable for two field elements plus
+ * extra bytes for uniformity.
+  *
+ * @param[out] p			- the result.
+ * @param[in] uniform_bytes		- the array of uniform bytes to map.
+ * @param[in] len			- the array length in bytes.
+ */
+void ep_map_from_field(ep_t p, const uint8_t *uniform_bytes, int len);
+
+/**
  * Maps a byte array to a point in a prime elliptic curve.
  *
  * @param[out] p			- the result.
@@ -1202,19 +1216,6 @@ void ep_norm_sim(ep_t *r, const ep_t *t, int n);
  * @param[in] len			- the array length in bytes.
  */
 void ep_map(ep_t p, const uint8_t *msg, int len);
-
-/**
- * Maps a byte array to a point in a prime elliptic curve using
- * an explicit domain separation tag.
- *
- * @param[out] p			- the result.
- * @param[in] msg			- the byte array to map.
- * @param[in] len			- the array length in bytes.
- * @param[in] dst			- the domain separation tag.
- * @param[in] dst_len		- the domain separation tag length in bytes.
- */
-void ep_map_dst(ep_t p, const uint8_t *msg, int len, const uint8_t *dst,
-		int dst_len);
 
 /**
  * Maps a byte array to a point in a prime elliptic curve with specified
