@@ -47,7 +47,7 @@
 /** Build with overhead estimation. */
 /* #undef OVERH */
 /** Build documentation. */
-#define DOCUM
+/* #undef DOCUM */
 /** Build only the selected algorithms. */
 /* #undef STRIP */
 /** Build with printing disabled. */
@@ -681,7 +681,7 @@
 /** POSIX multithreading support. */
 #define PTHREAD  2
 /** Chosen multithreading API. */
-#undef MULTI
+#define MULTI    OPENMP
 
 /** Per-process high-resolution timer. */
 #define HREAL    1

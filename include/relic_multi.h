@@ -51,11 +51,21 @@
 
 #if defined(MULTI)
 
+#ifndef DECLSPEC_THREAD
+#ifdef _MSC_VER
+#define DECLSPEC_THREAD __declspec(thread)
+#else
+#define DECLSPEC_THREAD
+#endif
+#endif /* !DECLSPEC_THREAD */
+
 /**
  * If multi-threading is enabled, assigns each thread a local copy of the data.
  */
 #if MULTI == PTHREAD
 #define rlc_thread 	__thread
+#elif MULTI == OPENMP && defined (_MSC_VER)
+#define rlc_thread DECLSPEC_THREAD
 #else
 #define rlc_thread /* */
 #endif
@@ -67,15 +77,18 @@
 /**
  * Active library context, only visible inside the library.
  */
-extern ctx_t first_ctx;
+extern DECLSPEC_THREAD ctx_t first_ctx;
 
 /**
  * Pointer to active library context, only visible inside the library.
  */
-extern ctx_t *core_ctx;
+extern DECLSPEC_THREAD ctx_t *core_ctx;
 
+#ifndef _MSC_VER
 #pragma omp threadprivate(first_ctx, core_ctx)
 #endif
+
+#endif /* #if MULTI == OPENMP */
 
 #endif /* MULTI */
 
